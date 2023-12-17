@@ -1,9 +1,8 @@
-package com.example.chat.websocket.service
+package com.example.chat.messaging.chatroom.service
 
-import com.example.chat.user.domain.UserModel
+import com.example.chat.messaging.user.UserModel
 import com.fasterxml.jackson.databind.ObjectMapper
 import io.github.oshai.kotlinlogging.KotlinLogging
-import org.springframework.boot.autoconfigure.security.SecurityProperties.User
 import org.springframework.messaging.simp.SimpMessagingTemplate
 import org.springframework.stereotype.Service
 import java.lang.IllegalArgumentException

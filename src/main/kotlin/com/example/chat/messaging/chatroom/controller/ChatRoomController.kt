@@ -1,9 +1,9 @@
-package com.example.chat.websocket.controller
+package com.example.chat.messaging.chatroom.controller
 
-import com.example.chat.message.chatroom.chatroommessage.ChatRoomMessageDto
-import com.example.chat.message.chatroom.joinchatroommessage.JoinChatRoomMessageDto
-import com.example.chat.user.domain.UserModel
-import com.example.chat.websocket.service.ChatRoomManagementService
+import com.example.chat.messaging.chatroom.service.ChatRoomMessageDto
+import com.example.chat.messaging.chatroom.service.JoinChatRoomMessageDto
+import com.example.chat.messaging.user.UserModel
+import com.example.chat.messaging.chatroom.service.ChatRoomManagementService
 import com.example.chat.websocket.service.SessionManagementService
 import com.fasterxml.jackson.databind.ObjectMapper
 import io.github.oshai.kotlinlogging.KotlinLogging
@@ -24,6 +24,12 @@ class ChatRoomController(
 
     private val logger = KotlinLogging.logger { }
 
+    /**
+     * Handles the action when a user wants to join a chatroom.
+     *
+     * @param joinChatRoomMessageDto DTO representing a user's request to join a chatroom.
+     * @param simpMessageHeaderAccessor Provides access to the header accessor where session information is stored.
+     */
     @MessageMapping("/chatroom")
     fun chatRoom(joinChatRoomMessageDto: JoinChatRoomMessageDto, simpMessageHeaderAccessor: SimpMessageHeaderAccessor) {
         val user = UserModel.fromJoinChatRoomMessageDto(joinChatRoomMessageDto)
@@ -31,11 +37,19 @@ class ChatRoomController(
 
         // Save the user session
         sessionManager.save(sessionId, user)
+
         logger.debug { "User $user joined with session $sessionId" }
-        // Add the user into the chatroom to keep track of number of users in the chatroom.
+
+        // Add the user into the chatroom to keep track of number of users in the chatroom
         chatRoomManager.join(user)
     }
 
+    /**
+     * Handles sending messages to a chatroom.
+     *
+     * @param chatMessage The chat message sent by the user.
+     * @param headerAccessor Accessor to retrieve the user's session information.
+     */
     @MessageMapping("/send")
     fun sendMessage(chatMessage: ChatRoomMessageDto, headerAccessor: SimpMessageHeaderAccessor) {
         val sessionId = headerAccessor.sessionId ?: return
@@ -50,9 +64,15 @@ class ChatRoomController(
         messagingTemplate.convertAndSend("/topic/chatroom${chatMessage.chatRoomId}", jsonMessage)
     }
 
+    /**
+     * Listens for WebSocket disconnection events and cleans up the user session and chatroom state.
+     *
+     * @param event The session disconnect event.
+     */
     @EventListener
     fun handleWebSocketDisconnectListener(event: SessionDisconnectEvent) {
         val sessionId = event.sessionId
+
         val user = sessionManager.getUserFromSession(sessionId)
         // Remove user from the chatroom
         chatRoomManager.leave(user)

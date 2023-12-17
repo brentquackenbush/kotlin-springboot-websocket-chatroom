@@ -1,4 +1,4 @@
-package com.example.chat.message.chatroom.chatroommessage
+package com.example.chat.messaging.chatroom.service
 
 /**
  * Chat Message

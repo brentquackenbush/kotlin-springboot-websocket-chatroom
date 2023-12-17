@@ -1,6 +1,6 @@
 package com.example.chat.websocket.service
 
-import com.example.chat.user.domain.UserModel
+import com.example.chat.messaging.user.UserModel
 import io.github.oshai.kotlinlogging.KotlinLogging
 import org.springframework.stereotype.Service
 

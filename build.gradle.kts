@@ -30,7 +30,8 @@ dependencies {
 	implementation("org.webjars:webjars-locator-core")
 	implementation("org.webjars:bootstrap:4.3.1")
 	implementation("org.webjars:stomp-websocket:2.3.3")
-
+	implementation("org.springframework.boot:spring-boot-starter-security")
+	implementation("org.springframework.security:spring-security-messaging")
 	testImplementation("org.springframework.boot:spring-boot-starter-test")
 }
 

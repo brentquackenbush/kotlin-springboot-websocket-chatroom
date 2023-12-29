@@ -3,11 +3,12 @@ package com.example.chat.websocket.service
 import com.example.chat.messaging.user.UserModel
 import io.github.oshai.kotlinlogging.KotlinLogging
 import org.springframework.stereotype.Service
+import java.util.concurrent.ConcurrentHashMap
 
 @Service
 class SessionManagementService {
 
-    private val sessionManagerMap = mutableMapOf<String, UserModel>()
+    private val sessionManagerMap : MutableMap<String, UserModel> = ConcurrentHashMap()
     private val logger = KotlinLogging.logger { }
 
     fun save(sessionId: String, user: UserModel) {
@@ -15,8 +16,8 @@ class SessionManagementService {
         logger.debug { "Successfully saved session and user" }
     }
 
-    fun getUserFromSession(sessionId: String): UserModel {
-        return sessionManagerMap[sessionId]!!
+    fun getUserFromSession(sessionId: String): UserModel? {
+        return sessionManagerMap[sessionId]
     }
 
     fun remove(sessionId: String): Unit {

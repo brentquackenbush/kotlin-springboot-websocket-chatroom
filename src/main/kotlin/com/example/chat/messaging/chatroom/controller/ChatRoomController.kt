@@ -37,11 +37,11 @@ class ChatRoomController(
 
         // Save the user session
         sessionManager.save(sessionId, user)
-
+        logger.debug { user.id }
         logger.debug { "User $user joined with session $sessionId" }
 
         // Add the user into the chatroom to keep track of number of users in the chatroom
-        chatRoomManager.join(user)
+        chatRoomManager.join(sessionId, user)
     }
 
     /**
@@ -55,7 +55,7 @@ class ChatRoomController(
         val sessionId = headerAccessor.sessionId ?: return
         val user = sessionManager.getUserFromSession(sessionId)
 
-        logger.debug { "User {${user.screenName}}: Sending message {${chatMessage.message}}" }
+        logger.debug { "User {${user?.screenName}}: Sending message {${chatMessage.message}}" }
 
         // Map message into JSON format for the front-end to receive
         val jsonMessage = jacksonObjectMapper.writeValueAsString(chatMessage)
@@ -73,16 +73,16 @@ class ChatRoomController(
     fun handleWebSocketDisconnectListener(event: SessionDisconnectEvent) {
         val sessionId = event.sessionId
 
-        val user = sessionManager.getUserFromSession(sessionId)
-        // Remove user from the chatroom
-        chatRoomManager.leave(user)
-        // Remove session
-        sessionManager.remove(sessionId)
+        sessionManager.getUserFromSession(sessionId)?.let { user ->
+            // Only proceed if user is not null
+            chatRoomManager.leave(user)
+            sessionManager.remove(sessionId)
 
-        // Notify other users in the chatroom about the disconnection
-        messagingTemplate.convertAndSend(
-            "/topic/chatroom${user.chatRoomId}",
-            "${user.screenName} has left the chatroom."
-        )
+            // Notify other users in the chatroom about the disconnection
+            messagingTemplate.convertAndSend(
+                "/topic/chatroom${user.chatRoomId}",
+                "${user.screenName} has left the chatroom."
+            )
+        }
     }
 }

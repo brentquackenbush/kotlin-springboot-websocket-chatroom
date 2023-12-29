@@ -1,11 +1,11 @@
 var stompClient = null;
-var currentChatRoomId = null;
+var userId = null;
 
 // State management
 const state = {
     connected: false,
     username: '',
-    chatroomId: null,
+    currentChatRoomId: null,
     users: [],
     messages: []
 };
@@ -24,7 +24,9 @@ function setConnected(connected) {
 }
 
 function connect() {
-    var socket = new SockJS('/ws');
+    userId = getOrGenerateUserId();
+    console.log(userId)
+    var socket = new SockJS('/ws?userId=' + encodeURIComponent(userId));
     stompClient = Stomp.over(socket);
     stompClient.connect({}, function (frame) {
         setConnected(true);
@@ -60,48 +62,65 @@ $(document).ready(function() {
     $("#disconnect").click(disconnect);
 
     // Join a chatroom
-    $("#joinChatRoom").click(joinChatRoom);
+    $("#joinChatRoom").click(function() {
+        var chatRoomId = $("#chatRoomId").val();
+        var name = $("#name").val();
+        if(chatRoomId && name) {
+            joinChatRoom(chatRoomId, name);
+        } else {
+            alert("Name and Chatroom ID are required to join a chatroom.");
+        }
+    });
 
     // Send a message to the chatroom
     $("#sendMessage").click(sendMessage);
 });
 
-function joinChatRoom() {
-    console.log("Join chatroom button clicked.");
-    var chatRoomId = $("#chatRoomId").val();
-    var name = $("#name").val();
-    if (chatRoomId && name) {
-        currentChatRoomId = chatRoomId;
-        state.username = name;
-        state.chatroomId = chatRoomId;
+function joinChatRoom(chatRoomId, name) {
+    // Disable join button immediately to prevent multiple clicks
+    $("#joinChatRoom").prop("disabled", true);
 
-        // Existing message subscription
-        stompClient.subscribe('/topic/chatroom' + chatRoomId, function (chatMessage) {
-            showMessage(chatMessage.body);
-        });
+    state.currentChatRoomId = chatRoomId;
+    state.username = name;
 
-        stompClient.subscribe('/topic/chatroomUsers' + chatRoomId, function (userListMessage) {
-            console.log("Subscription to /topic/chatroomUsers" + chatRoomId + " received a message.");
-            var users = JSON.parse(userListMessage.body);
-            console.log("Received user list update for Chatroom: " + users);
-            updateUserList(users);
-        });
+    var joinResponseSubscription = stompClient.subscribe('/user/queue/joinResponse', function (message) {
+        var response = JSON.parse(message.body);
+        if(response.status === "fail") {
+            alert(response.message);
+            $("#joinChatRoom").prop("disabled", false);
+        } else {
+            subscribeToChatTopics(chatRoomId);
+            $("#chatArea").show();
+            $("#joinChatRoomForm").hide();
+            $('#websocketConnectionForm').hide();
+        }
+        joinResponseSubscription.unsubscribe();
+    });
 
-        // Subscribe to user leave updates
-        stompClient.subscribe('/topic/chatroomUserLeave' + chatRoomId, function (userLeaveMessage) {
-            var leavingUser = JSON.parse(userLeaveMessage.body).screenName;
-            removeUserFromChatroom(leavingUser);
-        });
+    stompClient.send("/app/chatroom", {}, JSON.stringify({
+        'userId': userId,
+        'chatRoomId': chatRoomId,
+        'screenName': name,
+        'timestamp': new Date().toISOString()
+    }));
+}
 
-        // Inform the server about the new user joining
-        stompClient.send("/app/chatroom", {}, JSON.stringify({'chatRoomId': chatRoomId, 'screenName': name, 'timestamp': undefined}));
 
-        // UI updates
-        $("#chatArea").show();
-        $("#joinChatRoomForm").hide();
-    } else {
-        alert("Name and Chatroom ID are required to join a chatroom.");
-    }
+function subscribeToChatTopics(chatRoomId) {
+    stompClient.subscribe('/topic/chatroom' + chatRoomId, function (chatMessage) {
+        showMessage(chatMessage.body);
+    });
+
+    var usersSubscription = stompClient.subscribe('/topic/chatroomUsers' + chatRoomId, function (userListMessage) {
+        updateUserList(JSON.parse(userListMessage.body));
+    });
+
+    stompClient.subscribe('/topic/chatroomUserLeave' + chatRoomId, function (userLeaveMessage) {
+        removeUserFromChatroom(JSON.parse(userLeaveMessage.body).screenName);
+    });
+
+    // Save the chatRoomId in the state
+    state.currentChatRoomId = chatRoomId;
 }
 
 function sendMessage() {
@@ -110,7 +129,7 @@ function sendMessage() {
         var uniqueId = Date.now() + "_" + state.username; // Unique ID using timestamp and username
         var chatMessage = {
             id: uniqueId,
-            chatRoomId: currentChatRoomId,
+            chatRoomId: state.currentChatRoomId,
             sender: state.username,
             message: messageContent
         };
@@ -177,4 +196,20 @@ function updateUsersUI() {
     }).join('');
 
     $("#users").html(usersHtml);
+}
+
+function generateUUID() {
+    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+        var r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8);
+        return v.toString(16);
+    });
+}
+
+function getOrGenerateUserId() {
+    let storedUserId = localStorage.getItem('userId');
+    if (!storedUserId) {
+        storedUserId = generateUUID();
+        localStorage.setItem('userId', storedUserId);
+    }
+    return storedUserId;
 }

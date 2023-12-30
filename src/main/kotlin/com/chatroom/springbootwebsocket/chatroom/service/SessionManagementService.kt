@@ -1,6 +1,6 @@
-package com.example.chat.websocket.service
+package com.chatroom.springbootwebsocket.chatroom.service
 
-import com.example.chat.messaging.user.UserModel
+import com.chatroom.springbootwebsocket.common.user.UserModel
 import io.github.oshai.kotlinlogging.KotlinLogging
 import org.springframework.stereotype.Service
 import java.util.concurrent.ConcurrentHashMap

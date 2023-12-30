@@ -1,12 +1,10 @@
-package com.example.chat.messaging.chatroom.service
+package com.chatroom.springbootwebsocket.chatroom.service
 
-import com.example.chat.messaging.user.UserModel
-import com.example.chat.websocket.service.SessionManagementService
+import com.chatroom.springbootwebsocket.common.user.UserModel
 import com.fasterxml.jackson.databind.ObjectMapper
 import io.github.oshai.kotlinlogging.KotlinLogging
 import org.springframework.messaging.simp.SimpMessagingTemplate
 import org.springframework.stereotype.Service
-import java.lang.IllegalArgumentException
 import java.util.concurrent.ConcurrentHashMap
 
 /**

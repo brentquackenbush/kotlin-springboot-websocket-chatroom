@@ -1,6 +1,6 @@
-package com.example.chat.messaging.user
+package com.chatroom.springbootwebsocket.common.user
 
-import com.example.chat.messaging.chatroom.service.JoinChatRoomMessageDto
+import com.chatroom.springbootwebsocket.chatroom.service.JoinChatRoomMessageDto
 import java.time.Instant
 import java.time.Instant.now
 import java.util.UUID

@@ -1,6 +1,6 @@
-package com.example.chat.websocket.wsconfig
+package com.chatroom.springbootwebsocket.common.wsconfig
 
-import com.example.chat.websocket.security.CustomHandshakeHandler
+import com.chatroom.springbootwebsocket.common.security.CustomHandshakeHandler
 import io.github.oshai.kotlinlogging.KotlinLogging
 import org.springframework.context.annotation.Configuration
 import org.springframework.http.server.ServerHttpRequest

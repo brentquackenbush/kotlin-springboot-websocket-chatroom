@@ -1,4 +1,4 @@
-package com.example.chat.websocket.security
+package com.chatroom.springbootwebsocket.common.security
 
 import io.github.oshai.kotlinlogging.KotlinLogging
 import org.springframework.http.server.ServerHttpRequest

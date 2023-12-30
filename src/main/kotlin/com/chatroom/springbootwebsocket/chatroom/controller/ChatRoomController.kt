@@ -1,10 +1,10 @@
-package com.example.chat.messaging.chatroom.controller
+package com.chatroom.springbootwebsocket.chatroom.controller
 
-import com.example.chat.messaging.chatroom.service.ChatRoomMessageDto
-import com.example.chat.messaging.chatroom.service.JoinChatRoomMessageDto
-import com.example.chat.messaging.user.UserModel
-import com.example.chat.messaging.chatroom.service.ChatRoomManagementService
-import com.example.chat.websocket.service.SessionManagementService
+import com.chatroom.springbootwebsocket.chatroom.service.ChatRoomMessageDto
+import com.chatroom.springbootwebsocket.chatroom.service.JoinChatRoomMessageDto
+import com.chatroom.springbootwebsocket.common.user.UserModel
+import com.chatroom.springbootwebsocket.chatroom.service.ChatRoomManagementService
+import com.chatroom.springbootwebsocket.chatroom.service.SessionManagementService
 import com.fasterxml.jackson.databind.ObjectMapper
 import io.github.oshai.kotlinlogging.KotlinLogging
 import org.springframework.context.event.EventListener

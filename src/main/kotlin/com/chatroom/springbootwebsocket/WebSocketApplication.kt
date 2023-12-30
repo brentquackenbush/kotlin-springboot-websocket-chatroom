@@ -1,4 +1,4 @@
-package com.example.chat
+package com.chatroom.springbootwebsocket
 
 import org.springframework.boot.autoconfigure.SpringBootApplication
 import org.springframework.boot.runApplication

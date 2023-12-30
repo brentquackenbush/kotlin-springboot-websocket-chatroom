@@ -1,4 +1,4 @@
-package com.example.chat.websocket.security
+package com.chatroom.springbootwebsocket.common.security
 
 import java.security.Principal
 

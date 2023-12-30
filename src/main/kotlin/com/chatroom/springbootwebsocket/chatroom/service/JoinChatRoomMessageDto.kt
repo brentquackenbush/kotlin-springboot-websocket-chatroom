@@ -1,4 +1,4 @@
-package com.example.chat.messaging.chatroom.service
+package com.chatroom.springbootwebsocket.chatroom.service
 
 import java.time.Instant
 

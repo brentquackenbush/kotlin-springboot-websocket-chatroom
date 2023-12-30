@@ -1,7 +1,7 @@
 var stompClient = null;
 var userId = null;
 
-// State management
+// State management object to track application state
 const state = {
     connected: false,
     username: '',
@@ -10,6 +10,7 @@ const state = {
     messages: []
 };
 
+// Sets the connection status and updates UI accordingly
 function setConnected(connected) {
     $("#connect").prop("disabled", connected);
     $("#disconnect").prop("disabled", !connected);
@@ -23,6 +24,7 @@ function setConnected(connected) {
     state.connected = connected;
 }
 
+// Establishes connection to the WebSocket server
 function connect() {
     userId = getOrGenerateUserId();
     console.log(userId)
@@ -34,6 +36,7 @@ function connect() {
     });
 }
 
+// Disconnects from the WebSocket server and resets state
 function disconnect() {
     if (stompClient !== null) {
         stompClient.disconnect();
@@ -48,6 +51,7 @@ function disconnect() {
     updateChatbox();
 }
 
+// Sets up initial UI state and event handlers
 $(document).ready(function() {
     // Initially hide chat area
     $("#chatArea").hide();
@@ -62,19 +66,18 @@ $(document).ready(function() {
     $("#disconnect").click(disconnect);
 
     // Join a chatroom
-    $("#joinChatRoom").click(function() {
-        var chatRoomId = $("#chatRoomId").val();
-        var name = $("#name").val();
-        if(chatRoomId && name) {
-            joinChatRoom(chatRoomId, name);
-        } else {
-            alert("Name and Chatroom ID are required to join a chatroom.");
-        }
-    });
+    $("#joinChatRoom").click(joinChatRoomHandler);
 
     // Send a message to the chatroom
     $("#sendMessage").click(sendMessage);
 });
+
+// Handler for join chat room action
+function joinChatRoomHandler() {
+    var chatRoomId = $("#chatRoomId").val();
+    var name = $("#name").val();
+    chatRoomId && name ? joinChatRoom(chatRoomId, name) : alert("Name and Chatroom ID required.");
+}
 
 function joinChatRoom(chatRoomId, name) {
     // Disable join button immediately to prevent multiple clicks
@@ -83,11 +86,17 @@ function joinChatRoom(chatRoomId, name) {
     state.currentChatRoomId = chatRoomId;
     state.username = name;
 
+    // Move the subscription for user list updates here, before the join response
+    var usersSubscription = stompClient.subscribe('/topic/chatroomUsers' + chatRoomId, function (userListMessage) {
+        updateUserList(JSON.parse(userListMessage.body));
+    });
+
     var joinResponseSubscription = stompClient.subscribe('/user/queue/joinResponse', function (message) {
         var response = JSON.parse(message.body);
         if(response.status === "fail") {
             alert(response.message);
             $("#joinChatRoom").prop("disabled", false);
+            usersSubscription.unsubscribe(); // Unsubscribe if join fails
         } else {
             subscribeToChatTopics(chatRoomId);
             $("#chatArea").show();
@@ -105,16 +114,14 @@ function joinChatRoom(chatRoomId, name) {
     }));
 }
 
-
+// Subscribes to different chat room topics (messages, user updates)
 function subscribeToChatTopics(chatRoomId) {
+    // Subscribe to chat messages
     stompClient.subscribe('/topic/chatroom' + chatRoomId, function (chatMessage) {
         showMessage(chatMessage.body);
     });
 
-    var usersSubscription = stompClient.subscribe('/topic/chatroomUsers' + chatRoomId, function (userListMessage) {
-        updateUserList(JSON.parse(userListMessage.body));
-    });
-
+    // Subscribe to user leave updates
     stompClient.subscribe('/topic/chatroomUserLeave' + chatRoomId, function (userLeaveMessage) {
         removeUserFromChatroom(JSON.parse(userLeaveMessage.body).screenName);
     });
@@ -123,6 +130,7 @@ function subscribeToChatTopics(chatRoomId) {
     state.currentChatRoomId = chatRoomId;
 }
 
+// Sends a chat message
 function sendMessage() {
     var messageContent = $("#messageContent").val();
     if (messageContent && stompClient && state.connected) {
@@ -139,11 +147,10 @@ function sendMessage() {
 
         // Clear the message input field after sending
         $("#messageContent").val('');
-
-        // Do not immediately add to state; wait for it to come through subscription
     }
 }
 
+// Displays a chat message in the chatbox
 function showMessage(message) {
     var messageObj = JSON.parse(message);
 
@@ -163,6 +170,7 @@ function showMessage(message) {
     updateChatbox();
 }
 
+// Updates the chatbox with new messages
 function updateChatbox() {
     // Render the messages from the state to the chatbox
     var messagesHtml = state.messages.map(function (message) {
@@ -178,18 +186,19 @@ function updateChatbox() {
     }
 }
 
+// Updates the user list
 function updateUserList(userList) {
-    // This replaces the entire list of users with the new list
-    console.log(userList)
     state.users = userList;
     updateUsersUI();
 }
 
+// Removes a user from the chatroom
 function removeUserFromChatroom(leavingUser) {
     state.users = state.users.filter(user => user !== leavingUser);
     updateUsersUI();
 }
 
+// Updates the UI with the current user list
 function updateUsersUI() {
     var usersHtml = state.users.map(function(user) {
         return `<li>${user}</li>`;

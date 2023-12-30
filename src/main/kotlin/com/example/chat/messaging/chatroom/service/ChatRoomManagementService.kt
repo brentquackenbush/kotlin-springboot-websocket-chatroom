@@ -35,6 +35,8 @@ class ChatRoomManagementService(
         val chatRoomId = user.chatRoomId
         if (chatRoomId !in 1..999) {
             logger.error { "Invalid chat room ID: $chatRoomId" }
+
+            // Handled by front-end. Ok to return
             return
         }
 
@@ -49,15 +51,16 @@ class ChatRoomManagementService(
             return
         }
 
-        // Add the user to the chatroom and send a join success response
+        // Add the user to the chatroom
         usersInRoom.add(user)
+
+        // Broadcast the updated user list to all users in the room
+        updateUserListInChatroom(chatRoomId)
+
         messagingTemplate.convertAndSendToUser(
             user.id, "/queue/joinResponse",
             mapOf("status" to "success")
         )
-
-        // Broadcast the updated user list to all users in the room
-        updateUserListInChatroom(chatRoomId)
     }
 
     /**

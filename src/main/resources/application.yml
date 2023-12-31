@@ -1,3 +1,3 @@
 logging:
   level:
-    com.example.chat: DEBUG
+    com.chatroom.springbootwebsocket: DEBUG

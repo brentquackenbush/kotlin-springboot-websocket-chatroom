@@ -7,94 +7,100 @@ import org.springframework.messaging.simp.SimpMessagingTemplate
 import org.springframework.stereotype.Service
 import java.util.concurrent.ConcurrentHashMap
 
+
 /**
- * Management service that handles Chat Rooms.
+ * Service for managing chat rooms, tracking users, and broadcasting messages.
+ *
+ * @property messagingTemplate Template for sending messages over WebSocket to users.
+ * @property jacksonObjectMapper Mapper for converting objects to JSON strings.
  */
 @Service
 class ChatRoomManagementService(
     private val messagingTemplate: SimpMessagingTemplate,
     private val jacksonObjectMapper: ObjectMapper,
 ) {
+    companion object {
+        const val MAX_ROOM_CAPACITY = 2
+    }
 
     private val logger = KotlinLogging.logger { }
-
-    /**
-     * Manages chat rooms, tracking users in each room.
-     * Chat rooms are identified by a unique integer ID representing the Chat Room ID.
-     */
     private val chatRooms: MutableMap<Int, MutableList<UserModel>> = ConcurrentHashMap()
 
     /**
-     * Allows a user to join a chat room.
+     * Joins a user to a chat room. If the room is full or the room ID is invalid,
+     * it sends an error message to the user's private queue.
      *
-     * @param user The user attempting to join a chat room.
+     * @param sessionId The session ID of the user.
+     * @param user The user attempting to join.
      */
     fun join(sessionId: String, user: UserModel) {
         val chatRoomId = user.chatRoomId
-        if (chatRoomId !in 1..999) {
-            logger.error { "Invalid chat room ID: $chatRoomId" }
-
-            // Handled by front-end. Ok to return
-            return
-        }
+        validateChatRoomId(chatRoomId) ?: return
 
         val usersInRoom = chatRooms.getOrPut(chatRoomId) { mutableListOf() }
-
-        if (usersInRoom.size >= 2) {
-            logger.debug { "Chatroom $chatRoomId is full, ${user.screenName} cannot join." }
-            messagingTemplate.convertAndSendToUser(
-                user.id, "/queue/joinResponse",
-                mapOf("status" to "fail", "message" to "Chatroom is full")
-            )
+        if (isRoomFull(usersInRoom)) {
+            sendRoomFullMessage(user)
             return
         }
 
-        // Add the user to the chatroom
         usersInRoom.add(user)
+        broadcastUserListUpdate(chatRoomId)
+        sendJoinSuccessMessage(user)
+    }
 
-        // Broadcast the updated user list to all users in the room
-        updateUserListInChatroom(chatRoomId)
+    /**
+     * Removes a user from a chat room and updates other users in the room.
+     *
+     * @param user The user leaving the chat room.
+     */
+    fun leave(user: UserModel) {
+        val usersInRoom = chatRooms[user.chatRoomId]
+        usersInRoom?.remove(user) ?: logger.error { "User ${user.screenName} not found in Chatroom ${user.chatRoomId}" }
 
+        broadcastUserListUpdate(user.chatRoomId)
+        notifyUserLeave(user)
+    }
+
+    // Private helper functions below
+    private fun validateChatRoomId(chatRoomId: Int): Boolean? {
+        if (chatRoomId !in 1..999) {
+            logger.error { "Invalid chat room ID: $chatRoomId" }
+            return null
+        }
+        return true
+    }
+
+    private fun isRoomFull(usersInRoom: MutableList<UserModel>): Boolean {
+        if (usersInRoom.size >= MAX_ROOM_CAPACITY) {
+            logger.debug { "Chatroom is full, cannot join." }
+            return true
+        }
+        return false
+    }
+
+    private fun sendRoomFullMessage(user: UserModel) {
+        messagingTemplate.convertAndSendToUser(
+            user.id, "/queue/joinResponse",
+            mapOf("status" to "fail", "message" to "Chatroom is full")
+        )
+    }
+
+    private fun sendJoinSuccessMessage(user: UserModel) {
         messagingTemplate.convertAndSendToUser(
             user.id, "/queue/joinResponse",
             mapOf("status" to "success")
         )
     }
 
-    /**
-     * Update the client to let them know how many users are currently in the Chat Room.
-     */
-    fun updateUserListInChatroom(chatRoomId: Int) {
+    private fun broadcastUserListUpdate(chatRoomId: Int) {
         val usersInRoom = chatRooms[chatRoomId]?.map { it.screenName } ?: listOf()
         val usersInRoomPayload = jacksonObjectMapper.writeValueAsString(usersInRoom)
-
-        logger.debug { "Current users in the chatroom: $usersInRoomPayload" }
-
-        messagingTemplate.convertAndSend(
-            "/topic/chatroomUsers$chatRoomId",
-            usersInRoomPayload
-        )
+        logger.debug { "Broadcasting user list update." }
+        messagingTemplate.convertAndSend("/topic/chatroomUsers$chatRoomId", usersInRoomPayload)
     }
 
-    /**
-     * Allows a user to leave a chat room.
-     *
-     * @param user The user who is leaving the chat room. The UserModel contains the chat room ID the user is part of.
-     *
-     * @throws UserNotFoundException If the user is not found in the chat room they are attempting to leave.
-     */
-    fun leave(user: UserModel) {
-        chatRooms[user.chatRoomId]?.remove(user).let {
-            logger.debug { "Removed user ${user.screenName} from Chatroom ${user.chatRoomId}" }
-        }
-
-        // Update UI for Users in Chatroom
-        updateUserListInChatroom(user.chatRoomId)
-
-        // Notify other users in the chatroom about the disconnection
-        messagingTemplate.convertAndSend(
-            "/topic/chatroomUserLeave${user.chatRoomId}",
-            user.screenName,
-        )
+    private fun notifyUserLeave(user: UserModel) {
+        logger.debug { "Notifying users about ${user.screenName} leaving chatroom ${user.chatRoomId}." }
+        messagingTemplate.convertAndSend("/topic/chatroomUserLeave${user.chatRoomId}", user.screenName)
     }
 }

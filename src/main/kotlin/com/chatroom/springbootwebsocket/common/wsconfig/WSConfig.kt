@@ -19,7 +19,7 @@ class WSConfig: WebSocketMessageBrokerConfigurer {
     override fun configureMessageBroker(registry: MessageBrokerRegistry) {
         /**
          * Set up an in-memory message broker to carry messages back to the client on destinations prefixed with "/topic"
-         * It's used for broadcasting messages to all subscribed clients.
+         * or "/queue". It's used for broadcasting messages to all subscribed clients.
          */
         registry.enableSimpleBroker("/topic", "/queue")
         /**

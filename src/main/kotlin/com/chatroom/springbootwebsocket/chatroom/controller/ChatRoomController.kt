@@ -14,6 +14,14 @@ import org.springframework.messaging.simp.SimpMessagingTemplate
 import org.springframework.stereotype.Controller
 import org.springframework.web.socket.messaging.SessionDisconnectEvent
 
+/**
+ * Controller to handle WebSocket connections and messaging for chat rooms.
+ *
+ * @property messagingTemplate Template for sending messages over WebSocket.
+ * @property chatRoomManager Service for managing chat room logic and state.
+ * @property sessionManager Service for managing user sessions.
+ * @property jacksonObjectMapper Mapper for serializing and deserializing JSON.
+ */
 @Controller
 class ChatRoomController(
     private val messagingTemplate: SimpMessagingTemplate,
@@ -28,19 +36,16 @@ class ChatRoomController(
      * Handles the action when a user wants to join a chatroom.
      *
      * @param joinChatRoomMessageDto DTO representing a user's request to join a chatroom.
-     * @param simpMessageHeaderAccessor Provides access to the header accessor where session information is stored.
+     * @param headerAccessor Provides access to the header accessor where session information is stored.
      */
     @MessageMapping("/chatroom")
-    fun chatRoom(joinChatRoomMessageDto: JoinChatRoomMessageDto, simpMessageHeaderAccessor: SimpMessageHeaderAccessor) {
+    fun chatRoom(joinChatRoomMessageDto: JoinChatRoomMessageDto, headerAccessor: SimpMessageHeaderAccessor) {
+        val sessionId = headerAccessor.sessionId ?: return
         val user = UserModel.fromJoinChatRoomMessageDto(joinChatRoomMessageDto)
-        val sessionId = simpMessageHeaderAccessor.sessionId ?: return
 
-        // Save the user session
         sessionManager.save(sessionId, user)
-        logger.debug { user.id }
-        logger.debug { "User $user joined with session $sessionId" }
+        logger.debug { "User ${user.screenName} joined with session $sessionId" }
 
-        // Add the user into the chatroom to keep track of number of users in the chatroom
         chatRoomManager.join(sessionId, user)
     }
 
@@ -53,14 +58,11 @@ class ChatRoomController(
     @MessageMapping("/send")
     fun sendMessage(chatMessage: ChatRoomMessageDto, headerAccessor: SimpMessageHeaderAccessor) {
         val sessionId = headerAccessor.sessionId ?: return
-        val user = sessionManager.getUserFromSession(sessionId)
+        val user = sessionManager.getUserFromSession(sessionId) ?: return
 
-        logger.debug { "User {${user?.screenName}}: Sending message {${chatMessage.message}}" }
+        logger.debug { "User ${user.screenName}: Sending message ${chatMessage.message}" }
 
-        // Map message into JSON format for the front-end to receive
         val jsonMessage = jacksonObjectMapper.writeValueAsString(chatMessage)
-
-        // Send message to everyone in the chatroom
         messagingTemplate.convertAndSend("/topic/chatroom${chatMessage.chatRoomId}", jsonMessage)
     }
 
@@ -77,12 +79,6 @@ class ChatRoomController(
             // Only proceed if user is not null
             chatRoomManager.leave(user)
             sessionManager.remove(sessionId)
-
-            // Notify other users in the chatroom about the disconnection
-            messagingTemplate.convertAndSend(
-                "/topic/chatroom${user.chatRoomId}",
-                "${user.screenName} has left the chatroom."
-            )
         }
     }
 }

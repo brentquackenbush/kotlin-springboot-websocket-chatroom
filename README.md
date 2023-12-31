@@ -151,3 +151,20 @@ class ChatRoomController {
 `handleWebSocketDisconnectListener`: Listens for disconnection events to manage user sessions.
 
 ## Creating a front-end UI
+
+### Bobby tries joining chatroom 1
+![Pt1 Bobby Joins](https://github.com/brentquackenbush/chatroom/assets/50753562/c7fa72e7-0101-4c1a-9541-2828961a5af4)
+### Bobby is successful
+![Pt2 Bobby Joins](https://github.com/brentquackenbush/chatroom/assets/50753562/a3278a01-569e-43b5-bd6a-203b51d8bb6c)
+### Carrie tries joining chatroom 1
+![Pt3 Carrie Joins](https://github.com/brentquackenbush/chatroom/assets/50753562/c98c26f9-d209-4ccd-914b-5e52dcfc083f)
+### Carrie is successful
+![Pt4 Carrie Joins](https://github.com/brentquackenbush/chatroom/assets/50753562/83bb583c-6990-442f-ac89-60e7533fb42a)
+### (Bobby perspective) Bobby sends `Hello`
+![Pt5 Bobby Perspective](https://github.com/brentquackenbush/chatroom/assets/50753562/3ade8931-5a1e-4b10-949e-1aad19a26b2a)
+### (Carrie perspective) Carrie receives `Hello`
+![Pt6 Carrie Perspective](https://github.com/brentquackenbush/chatroom/assets/50753562/15112acb-cd3f-4181-b19c-5072c68ac0a4)
+### New user Cena tries joining chatroom 1, but max capacity is set to 2
+![Pt8 Chatroom full](https://github.com/brentquackenbush/chatroom/assets/50753562/9d9e291c-2c75-4923-9abc-e8040d1890a6)
+### Cena is successful in joining chatroom 2 (currently empty) 
+![Screenshot 2023-12-30 at 7 37 16 PM](https://github.com/brentquackenbush/chatroom/assets/50753562/c1ee7f83-f651-42c7-b202-522f1c6dabf3)

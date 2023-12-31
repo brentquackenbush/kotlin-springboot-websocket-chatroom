@@ -15,7 +15,7 @@ STOMP (Simple/Streaming Text Oriented Messaging Protocol) is a simple, text-base
 In Spring Boot, STOMP over WebSocket facilitates real-time communication. It manages subscriptions and messaging, simplifying the development of applications like chat services.
 
 ## Project Structure 
-![Screenshot 2023-12-30 at 5.54.17 PM.png](..%2FScreenshot%202023-12-30%20at%205.54.17%E2%80%AFPM.png)
+![Screenshot 2023-12-30 at 5 54 17 PM](https://github.com/brentquackenbush/chatroom/assets/50753562/d5b2ee25-efff-4ee5-9340-07a60c29d917)
 
 ## Configuring WebSocket in Spring Boot
 
@@ -151,15 +151,3 @@ class ChatRoomController {
 `handleWebSocketDisconnectListener`: Listens for disconnection events to manage user sessions.
 
 ## Creating a front-end UI
-
-### Bobby joins chatroom 1
-![Screenshot 2023-12-30 at 7.04.55 PM.png](..%2FScreenshot%202023-12-30%20at%207.04.55%E2%80%AFPM.png)
-![Screenshot 2023-12-30 at 7.05.05 PM.png](..%2FScreenshot%202023-12-30%20at%207.05.05%E2%80%AFPM.png)
-### Timothy joins chatroom 1
-![Screenshot 2023-12-30 at 7.06.01 PM.png](..%2FScreenshot%202023-12-30%20at%207.06.01%E2%80%AFPM.png)
-### Timothy says `Hello` (Timothy perspective)
-![Screenshot 2023-12-30 at 7.06.11 PM.png](..%2FScreenshot%202023-12-30%20at%207.06.11%E2%80%AFPM.png)
-### Bobby responds with `Yo` (Bobby perspective)
-![Screenshot 2023-12-30 at 7.06.24 PM.png](..%2FScreenshot%202023-12-30%20at%207.06.24%E2%80%AFPM.png)
-### John Cena tries to join chatroom 1, but max capacity is 2
-![Screenshot 2023-12-30 at 7.06.44 PM.png](..%2FScreenshot%202023-12-30%20at%207.06.44%E2%80%AFPM.png)

@@ -15,7 +15,7 @@ STOMP (Simple/Streaming Text Oriented Messaging Protocol) is a simple, text-base
 In Spring Boot, STOMP over WebSocket facilitates real-time communication. It manages subscriptions and messaging, simplifying the development of applications like chat services.
 
 ## Project Structure 
-![Screenshot 2023-12-30 at 5.54.17 PM.png](..%2FScreenshot%202023-12-30%20at%205.54.17%E2%80%AFPM.png)
+![Screenshot 2023-12-30 at 5 54 17 PM](https://github.com/brentquackenbush/chatroom/assets/50753562/d5b2ee25-efff-4ee5-9340-07a60c29d917)
 
 ## Configuring WebSocket in Spring Boot
 
@@ -152,14 +152,19 @@ class ChatRoomController {
 
 ## Creating a front-end UI
 
-### Bobby joins chatroom 1
-![Screenshot 2023-12-30 at 7.04.55 PM.png](..%2FScreenshot%202023-12-30%20at%207.04.55%E2%80%AFPM.png)
-![Screenshot 2023-12-30 at 7.05.05 PM.png](..%2FScreenshot%202023-12-30%20at%207.05.05%E2%80%AFPM.png)
-### Timothy joins chatroom 1
-![Screenshot 2023-12-30 at 7.06.01 PM.png](..%2FScreenshot%202023-12-30%20at%207.06.01%E2%80%AFPM.png)
-### Timothy says `Hello` (Timothy perspective)
-![Screenshot 2023-12-30 at 7.06.11 PM.png](..%2FScreenshot%202023-12-30%20at%207.06.11%E2%80%AFPM.png)
-### Bobby responds with `Yo` (Bobby perspective)
-![Screenshot 2023-12-30 at 7.06.24 PM.png](..%2FScreenshot%202023-12-30%20at%207.06.24%E2%80%AFPM.png)
-### John Cena tries to join chatroom 1, but max capacity is 2
-![Screenshot 2023-12-30 at 7.06.44 PM.png](..%2FScreenshot%202023-12-30%20at%207.06.44%E2%80%AFPM.png)
+### Bobby tries joining chatroom 1
+![Pt1 Bobby Joins](https://github.com/brentquackenbush/chatroom/assets/50753562/c7fa72e7-0101-4c1a-9541-2828961a5af4)
+### Bobby is successful
+![Pt2 Bobby Joins](https://github.com/brentquackenbush/chatroom/assets/50753562/a3278a01-569e-43b5-bd6a-203b51d8bb6c)
+### Carrie tries joining chatroom 1
+![Pt3 Carrie Joins](https://github.com/brentquackenbush/chatroom/assets/50753562/c98c26f9-d209-4ccd-914b-5e52dcfc083f)
+### Carrie is successful
+![Pt4 Carrie Joins](https://github.com/brentquackenbush/chatroom/assets/50753562/83bb583c-6990-442f-ac89-60e7533fb42a)
+### (Bobby perspective) Bobby sends `Hello`
+![Pt5 Bobby Perspective](https://github.com/brentquackenbush/chatroom/assets/50753562/3ade8931-5a1e-4b10-949e-1aad19a26b2a)
+### (Carrie perspective) Carrie receives `Hello`
+![Pt6 Carrie Perspective](https://github.com/brentquackenbush/chatroom/assets/50753562/15112acb-cd3f-4181-b19c-5072c68ac0a4)
+### New user Cena tries joining chatroom 1, but max capacity is set to 2
+![Pt8 Chatroom full](https://github.com/brentquackenbush/chatroom/assets/50753562/9d9e291c-2c75-4923-9abc-e8040d1890a6)
+### Cena is successful in joining chatroom 2 (currently empty) 
+![Screenshot 2023-12-30 at 7 37 16 PM](https://github.com/brentquackenbush/chatroom/assets/50753562/c1ee7f83-f651-42c7-b202-522f1c6dabf3)
